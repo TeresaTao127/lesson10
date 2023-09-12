@@ -3,40 +3,12 @@ package lesson10Task1;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.NoSuchElementException;
-import java.util.Optional;
+import java.util.*;
+import java.util.stream.Collectors;
 
 public class PhoneBook {
 
-    private Map<String, PhoneBookEntry> entries;
-
-    public PhoneBook() {
-        entries = new HashMap<>();
-    }
-
-    public void addEntry(String firstName, String lastName, String phoneNumber, String address) {
-        if (firstName.isEmpty() || lastName.isEmpty() || address.isEmpty()) {
-            throw new IllegalArgumentException("the address, first name, and last name fields are mandatory");
-        }
-
-
-        PhoneBookEntry entry = new PhoneBookEntry(firstName, lastName, phoneNumber, address);
-        String key = firstName.toLowerCase() + " " + lastName.toLowerCase();
-        entries.put(key, entry);
-
-    }
-
-    public PhoneBookEntry searchEntry(String firstName, String lastName) {
-        String key = firstName.toLowerCase() + " " + lastName.toLowerCase();
-        if (entries.containsKey(key)) {
-            return entries.get(key);
-        } else {
-            throw new NoSuchElementException("Entry not found in the phone book.");
-        }
-
-    }
+    private static List<PhoneBookEntry>entries=new ArrayList<>();
 
     public static void main(String[] args) {
         PhoneBook phoneBook = new PhoneBook();
@@ -54,12 +26,13 @@ public class PhoneBook {
                     String lastName=data[1].trim();
                     String phoneNumber=data[2].trim();
                     String address=data[3].trim();
-                    phoneBook.addEntry(firstName, lastName, phoneNumber, address);
+                    PhoneBookEntry entry =new PhoneBookEntry(firstName,lastName,phoneNumber,address);
+                    entries.add(entry);
                 }
             }
             try {
-                PhoneBookEntry entry = phoneBook.searchEntry("Simon", "Stone");
-                System.out.println("Entry found:\n " + entry);
+                List<PhoneBookEntry> foundPeople=phoneBook.findPeopleByName("Simon", "Stone");
+                System.out.println("Entry found:\n " + foundPeople);
             } catch (NoSuchElementException e) {
                 System.out.println("Entry not found.");
             }
@@ -68,6 +41,11 @@ public class PhoneBook {
         }
     }
 
+    public List<PhoneBookEntry>findPeopleByName(String firstName, String lastName){
+        return entries.stream()
+                .filter(entry ->entry.getFullName().equalsIgnoreCase(firstName+" "+lastName))
+                .collect(Collectors.toList());
+    }
     private static Optional<String> readTextContentOpt(String filePath) {
         try {
             String textContent = Files.readString(Path.of(filePath));
